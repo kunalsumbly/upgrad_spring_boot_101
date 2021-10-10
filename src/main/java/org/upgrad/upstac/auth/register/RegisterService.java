@@ -3,11 +3,18 @@ package org.upgrad.upstac.auth.register;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.upgrad.upstac.exception.AppException;
+import org.upgrad.upstac.exception.UpgradResponseStatusException;
 import org.upgrad.upstac.users.User;
 import org.upgrad.upstac.users.UserService;
+import org.upgrad.upstac.users.models.AccountStatus;
 import org.upgrad.upstac.users.roles.UserRole;
+
+import java.time.LocalDateTime;
+
+import static org.upgrad.upstac.shared.DateParser.getDateFromString;
 
 
 @Service
@@ -21,72 +28,72 @@ public class RegisterService {
 
 
     public User addUser(RegisterRequest registerRequest) {
-
-
-
-
-
-/*      User should be validated before registration.
-                the username , email and phone number should be unique (i.e should throw AppException if the RegisterRequest has the same username or email or phone number)
-                    hint:
-                        userService.findByUserName
-                        userService.findByEmail
-                        userService.findByPhoneNumber
-
-         A new User Object should be created with same details as registerRequest
-                password should be encrypted with help of   userService.toEncrypted
-                roles should be set with help of  userService.getRoleFor(UserRole.USER)
-                status should be set to AccountStatus.APPROVED
-
-        And finally
-            Call userService.saveInDatabase to save the new user and return the saved user
-*/
-
-       throw new AppException("Method Not Implemented");
+        try {
+            validateIfUserAlreadyExists(registerRequest);
+            User newUser = transformToUserEntity(registerRequest, AccountStatus.APPROVED);
+            User updatedUser = userService.saveInDatabase(newUser);
+            return updatedUser;
+        } catch (Exception ex) {
+            throw new UpgradResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
     }
 
-    public User addDoctor(RegisterRequest user) {
+    private void validateIfUserAlreadyExists(RegisterRequest registerRequest) {
+        if (userService.findByUserName(registerRequest.getUserName()) != null) {
+            throw new AppException("User name already exists");
+        }
+        if (userService.findByEmail(registerRequest.getEmail()) != null) {
+            throw new AppException("User name already exists");
+        }
+        if (userService.findByPhoneNumber(registerRequest.getPhoneNumber()) != null) {
+            throw new AppException("User name already exists");
+        }
+    }
 
+    private User transformToUserEntity(RegisterRequest registerRequest, AccountStatus status) {
+        User newUser = new User();
+        newUser.setUserName(registerRequest.getUserName());
+        newUser.setPassword(userService.toEncrypted(registerRequest.getPassword()));
+        newUser.setRoles(userService.getRoleFor(UserRole.USER));
+        newUser.setCreated(LocalDateTime.now());
+        newUser.setUpdated(LocalDateTime.now());
+        newUser.setAddress(registerRequest.getAddress());
+        newUser.setFirstName(registerRequest.getFirstName());
+        newUser.setLastName(registerRequest.getLastName());
+        newUser.setEmail(registerRequest.getEmail());
+        newUser.setPhoneNumber(registerRequest.getPhoneNumber());
+        newUser.setPinCode(registerRequest.getPinCode());
+        newUser.setGender(registerRequest.getGender());
+        newUser.setAddress(registerRequest.getAddress());
+        newUser.setDateOfBirth(getDateFromString(registerRequest.getDateOfBirth()));
+        newUser.setStatus(status);
+        return newUser;
+    }
 
-/*      Doctor should be validated before registration.
-                the username , email and phone number should be unique (i.e should throw AppException if the RegisterRequest has the same username or email or phone number)
-                    hint:
-                        userService.findByUserName
-                        userService.findByEmail
-                        userService.findByPhoneNumber
+    public User addDoctor(RegisterRequest registerRequest) {
+        try {
+            validateIfUserAlreadyExists(registerRequest);
+            User newUser = transformToUserEntity(registerRequest, AccountStatus.INITIATED);
+            User updatedUser = userService.saveInDatabase(newUser);
+            return updatedUser;
+        } catch (Exception ex) {
+            throw new UpgradResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
 
-         A new User Object should be created with same details as registerRequest
-                password should be encrypted with help of   userService.toEncrypted
-                roles should be set with help of  userService.getRoleFor(UserRole.DOCTOR)
-                status should be set to AccountStatus.INITIATED
+        }
 
-        And finally
-            Call userService.saveInDatabase to save the newly registered doctor and return the saved value
-*/
-        throw new AppException("Method Not Implemented");
     }
 
 
-    public User addTester(RegisterRequest user) {
+    public User addTester(RegisterRequest registerRequest) {
+        try {
+            validateIfUserAlreadyExists(registerRequest);
+            User newUser = transformToUserEntity(registerRequest, AccountStatus.INITIATED);
+            User updatedUser = userService.saveInDatabase(newUser);
+            return updatedUser;
+        } catch (Exception ex) {
+            throw new UpgradResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
 
-
-/*      Tester should be validated before registration.
-                the username , email and phone number should be unique (i.e should throw AppException if the RegisterRequest has the same username or email or phone number)
-                    hint:
-                        userService.findByUserName
-                        userService.findByEmail
-                        userService.findByPhoneNumber
-
-         A new User Object should be created with same details as registerRequest
-                password should be encrypted with help of   userService.toEncrypted
-                roles should be set with help of  userService.getRoleFor(UserRole.TESTER)
-                status should be set to AccountStatus.INITIATED
-
-        And finally
-            Call userService.saveInDatabase to save newly registered tester and return the saved value
-*/
-
-        throw new AppException("Method Not Implemented");
+        }
     }
 
 
