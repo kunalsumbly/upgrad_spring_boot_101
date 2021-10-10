@@ -30,7 +30,7 @@ public class RegisterService {
     public User addUser(RegisterRequest registerRequest) {
         try {
             validateIfUserAlreadyExists(registerRequest);
-            User newUser = transformToUserEntity(registerRequest, AccountStatus.APPROVED);
+            User newUser = transformToUserEntity(registerRequest, AccountStatus.APPROVED, UserRole.USER);
             User updatedUser = userService.saveInDatabase(newUser);
             return updatedUser;
         } catch (Exception ex) {
@@ -50,11 +50,11 @@ public class RegisterService {
         }
     }
 
-    private User transformToUserEntity(RegisterRequest registerRequest, AccountStatus status) {
+    private User transformToUserEntity(RegisterRequest registerRequest, AccountStatus status, UserRole role) {
         User newUser = new User();
         newUser.setUserName(registerRequest.getUserName());
         newUser.setPassword(userService.toEncrypted(registerRequest.getPassword()));
-        newUser.setRoles(userService.getRoleFor(UserRole.USER));
+        newUser.setRoles(userService.getRoleFor(role));
         newUser.setCreated(LocalDateTime.now());
         newUser.setUpdated(LocalDateTime.now());
         newUser.setAddress(registerRequest.getAddress());
@@ -73,7 +73,7 @@ public class RegisterService {
     public User addDoctor(RegisterRequest registerRequest) {
         try {
             validateIfUserAlreadyExists(registerRequest);
-            User newUser = transformToUserEntity(registerRequest, AccountStatus.INITIATED);
+            User newUser = transformToUserEntity(registerRequest, AccountStatus.INITIATED, UserRole.DOCTOR);
             User updatedUser = userService.saveInDatabase(newUser);
             return updatedUser;
         } catch (Exception ex) {
@@ -87,7 +87,7 @@ public class RegisterService {
     public User addTester(RegisterRequest registerRequest) {
         try {
             validateIfUserAlreadyExists(registerRequest);
-            User newUser = transformToUserEntity(registerRequest, AccountStatus.INITIATED);
+            User newUser = transformToUserEntity(registerRequest, AccountStatus.INITIATED, UserRole.TESTER);
             User updatedUser = userService.saveInDatabase(newUser);
             return updatedUser;
         } catch (Exception ex) {
